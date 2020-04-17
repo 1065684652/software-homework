@@ -1,0 +1,151 @@
+#include <stdio.h>
+#include <string.h>
+
+
+/*
+
+键盘输入4个学生姓名以及每个学生3门课的成绩。
+1) 用子e799bee5baa6e79fa5e98193e58685e5aeb931333335346132函数输出每个学生的平均分。
+
+*/
+
+
+
+/*常量  字符串默认长度*/
+const int STRING_DEFAULT_LEN = 50;
+/*常量  学生人数 4人*/
+const int STUDENTS_COUNT = 4;
+/*常量  课程数量3门*/
+const int COURSE_COUNT = 3;
+
+/*变量  选课记录*/
+int sign_up_of_course_count;
+
+/*课程数据结构*/
+struct course {
+	char name[STRING_DEFAULT_LEN];
+};
+
+/*学生数据结构*/
+struct student {
+	char name[STRING_DEFAULT_LEN];
+};
+
+/*学生的选课数据结构，包括学生/课程/得分*/
+struct sign_up_of_course {
+	struct student s;
+	struct course c;
+	float score;
+};
+
+
+/*子函数 输出每个学生的平均分*/
+void print_avg_of_each_student(const struct sign_up_of_course*, int);
+
+int main()
+{
+	/*初始化4个学生*/
+	struct student s[STUDENTS_COUNT] = { "StudentA", "StudentB", "StudentC", "StudentD" };
+
+	/*初始化3门课程*/
+	struct course c[COURSE_COUNT] = { "Course1", "Course2", "Course3" };
+
+	/*初始化选课记录*/
+	sign_up_of_course_count = STUDENTS_COUNT * COURSE_COUNT;
+	struct sign_up_of_course* signup = new struct sign_up_of_course[sign_up_of_course_count];
+	memset(signup, 0, sign_up_of_course_count * sizeof(struct sign_up_of_course));
+
+	int i, j;
+	for (i = 0; i < STUDENTS_COUNT; i++)
+	{
+		for (j = 0; j < COURSE_COUNT; j++)
+		{
+			/*学生和课程数据到该选课记录*/
+			memcpy(&((signup + i * (STUDENTS_COUNT - 1) + j)->s), &s[i], sizeof(struct student));
+			memcpy(&((signup + i * (STUDENTS_COUNT - 1) + j)->c), &c[j], sizeof(struct course));
+		}
+	}
+
+	/*请用户输入每个选课记录的成绩，即各个学生的成绩*/
+	int k = 0;
+	for (k = 0; k < sign_up_of_course_count; k++)
+	{
+		/*用户输入成绩，保存到选择记录的分数栏中*/
+		printf("请输入学生%s的课程%s的成绩：", ((signup + k)->s).name, ((signup + k)->c).name);
+		scanf("%f", &((signup + k)->score));
+		//(signup + k)->score = k+1;
+	}
+
+	/*调用子函数 输出每个学生的平均分*/
+	print_avg_of_each_student(signup, sign_up_of_course_count);
+
+	/*销毁分配的内存*/
+	delete[] signup;
+
+	getchar();
+	getchar();
+	return 0;
+}
+
+/*实现子函数 输出每个学生的平均分*/
+void print_avg_of_each_student(const struct sign_up_of_course* signup, int len)
+{
+	struct student_score
+	{
+		struct student s; /*学生*/
+		float avg;         /*平均值*/
+		float total;       /*总分*/
+		int count;         /*计数*/
+	};
+
+	struct student_score scores[STUDENTS_COUNT];
+	memset(scores, 0, STUDENTS_COUNT * sizeof(struct student_score));
+
+	int i, j;
+	char s1[STRING_DEFAULT_LEN];
+	char s2[STRING_DEFAULT_LEN];
+	int scores_filled_pos = -1;
+	bool scores_record_proessed = false;
+	/*处理每一条选课记录，按学生合计*/
+	for (i = 0; i < len; i++)
+	{
+		memset(s1, 0, STRING_DEFAULT_LEN);
+		memset(s2, 0, STRING_DEFAULT_LEN);
+
+		/*求学生的分数合计*/
+		scores_record_proessed = false;
+		for (j = 0; j < STUDENTS_COUNT; j++)
+		{
+			strcpy(s1, signup[i].s.name);
+			strcpy(s2, scores[j].s.name);
+
+			if (strcmp(s1, s2) == 0)
+			{
+				memcpy(&scores[j].s, &signup[i].s, sizeof(struct student));
+				scores[j].total += signup[i].score;
+				scores[j].count += 1;
+
+				scores_record_proessed = true;
+
+				break;
+			}
+		}
+
+		if (scores_record_proessed == false)
+		{
+			scores_filled_pos += 1;
+			memcpy(&scores[scores_filled_pos].s, &signup[i].s, sizeof(struct student));
+			scores[scores_filled_pos].total += signup[i].score;
+			scores[scores_filled_pos].count += 1;
+			continue;
+		}
+	}
+
+	/*求平均值并输出*/
+	for (j = 0; j < STUDENTS_COUNT; j++)
+	{
+		scores[j].avg = scores[j].total / scores[j].count;
+		printf("学生%s的平均分数是%2.2f\n", scores[j].s.name, scores[j].avg);
+	}
+
+}
